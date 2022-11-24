@@ -7,7 +7,7 @@ List<Page> onGenerateAppViewPages(AppStatus state, List<Page<dynamic>> pages) {
   switch (state) {
     case AppStatus.authenticated:
       return [RootPage.page()];
-    default:
+    case AppStatus.unauthenticated:
       return [LoginPage.page()];
   }
 }

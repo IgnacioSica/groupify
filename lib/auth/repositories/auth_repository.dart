@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:cache/cache.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -8,110 +7,12 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:meta/meta.dart';
-import 'package:spotify_sdk/models/connection_status.dart';
 import 'package:spotify_sdk/spotify_sdk.dart';
 
 import '../auth.dart';
-
-class LogInWithSpotifyFailure implements Exception {
-  const LogInWithSpotifyFailure([
-    this.message = 'An unknown exception occurred.',
-  ]);
-
-  /// Create an authentication message
-  /// from a firebase authentication exception code.
-  factory LogInWithSpotifyFailure.fromCode(String code) {
-    switch (code) {
-      case 'account-exists-with-different-credential':
-        return const LogInWithSpotifyFailure(
-          'Account exists with different credentials.',
-        );
-      case 'invalid-credential':
-        return const LogInWithSpotifyFailure(
-          'The credential received is malformed or has expired.',
-        );
-      case 'operation-not-allowed':
-        return const LogInWithSpotifyFailure(
-          'Operation is not allowed.  Please contact support.',
-        );
-      case 'user-disabled':
-        return const LogInWithSpotifyFailure(
-          'This user has been disabled. Please contact support for help.',
-        );
-      case 'user-not-found':
-        return const LogInWithSpotifyFailure(
-          'Email is not found, please create an account.',
-        );
-      case 'wrong-password':
-        return const LogInWithSpotifyFailure(
-          'Incorrect password, please try again.',
-        );
-      case 'invalid-verification-code':
-        return const LogInWithSpotifyFailure(
-          'The credential verification code received is invalid.',
-        );
-      case 'invalid-verification-id':
-        return const LogInWithSpotifyFailure(
-          'The credential verification ID received is invalid.',
-        );
-      default:
-        return const LogInWithSpotifyFailure();
-    }
-  }
-
-  final String message;
-}
-
-class LogInWithGoogleFailure implements Exception {
-  const LogInWithGoogleFailure([
-    this.message = 'An unknown exception occurred.',
-  ]);
-
-  /// Create an authentication message
-  /// from a firebase authentication exception code.
-  factory LogInWithGoogleFailure.fromCode(String code) {
-    switch (code) {
-      case 'account-exists-with-different-credential':
-        return const LogInWithGoogleFailure(
-          'Account exists with different credentials.',
-        );
-      case 'invalid-credential':
-        return const LogInWithGoogleFailure(
-          'The credential received is malformed or has expired.',
-        );
-      case 'operation-not-allowed':
-        return const LogInWithGoogleFailure(
-          'Operation is not allowed.  Please contact support.',
-        );
-      case 'user-disabled':
-        return const LogInWithGoogleFailure(
-          'This user has been disabled. Please contact support for help.',
-        );
-      case 'user-not-found':
-        return const LogInWithGoogleFailure(
-          'Email is not found, please create an account.',
-        );
-      case 'wrong-password':
-        return const LogInWithGoogleFailure(
-          'Incorrect password, please try again.',
-        );
-      case 'invalid-verification-code':
-        return const LogInWithGoogleFailure(
-          'The credential verification code received is invalid.',
-        );
-      case 'invalid-verification-id':
-        return const LogInWithGoogleFailure(
-          'The credential verification ID received is invalid.',
-        );
-      default:
-        return const LogInWithGoogleFailure();
-    }
-  }
-
-  final String message;
-}
-
-class LogOutFailure implements Exception {}
+import 'login_with_google_failure.dart';
+import 'login_with_spotify_failure.dart';
+import 'logout_failure.dart';
 
 class AuthRepository implements TokenRepository {
   AuthRepository({
@@ -162,24 +63,25 @@ class AuthRepository implements TokenRepository {
     try {
       return SpotifySdk.subscribeUserStatus().asyncMap((userStatus) async {
         if (userStatus.isLoggedIn()) {
-          final spotifyAccessToken = SpotifyAccessToken(accessToken: await getSpotifyAccessToken());
-          _cache.write(key: spotifyCacheKey, value: spotifyAccessToken);
-          return spotifyAccessToken;
+          return _cache.read<SpotifyAccessToken>(key: spotifyCacheKey) ?? SpotifyAccessToken.empty;
         } else {
           return SpotifyAccessToken.empty;
         }
       });
     } catch (e) {
-      return Stream.fromIterable([SpotifyAccessToken.empty]);
+      return Stream.fromFuture(getSpotifyAccessToken()).asyncMap((token) {
+        _cache.write(key: spotifyCacheKey, value: token);
+        return SpotifyAccessToken(accessToken: token);
+      });
     }
   }
 
-  Stream<ConnectionStatus> get connectionStatus {
-    return SpotifySdk.subscribeConnectionStatus().asyncMap((connectionStatus) async {
-      print("========>" + jsonEncode(connectionStatus));
-      return connectionStatus;
-    });
-  }
+  // Stream<ConnectionStatus> get connectionStatus {
+  //   return SpotifySdk.subscribeConnectionStatus().asyncMap((connectionStatus) async {
+  //     print("========>" + jsonEncode(connectionStatus));
+  //     return connectionStatus;
+  //   });
+  // }
 
   // Stream<SpotifyAccessTokenEvent> get spotifyAccessToken {
   //   return SpotifySdk.subscribeConnectionStatus().asyncMap((event) async {
@@ -212,7 +114,7 @@ class AuthRepository implements TokenRepository {
   Future<String> getSpotifyAccessToken() async {
     return await SpotifySdk.getAccessToken(
       clientId: "b9a4881e77f4488eb882788cb106a297",
-      redirectUrl: "http://mysite.com/callback",
+      redirectUrl: "https://com.example.groupify/callback/",
       scope: [
         'app-remote-control',
         'user-library-modify',
@@ -230,7 +132,7 @@ class AuthRepository implements TokenRepository {
     try {
       final accessToken = await SpotifySdk.getAccessToken(
         clientId: "b9a4881e77f4488eb882788cb106a297",
-        redirectUrl: "http://mysite.com/callback",
+        redirectUrl: "https://com.example.groupify/callback/",
         scope: [
           'app-remote-control',
           'user-library-modify',
@@ -243,19 +145,17 @@ class AuthRepository implements TokenRepository {
         ].join(","),
       );
 
-      SpotifySdk.connectToSpotifyRemote(
+      await SpotifySdk.connectToSpotifyRemote(
         clientId: 'b9a4881e77f4488eb882788cb106a297',
-        redirectUrl: 'http://mysite.com/callback',
+        redirectUrl: 'https://com.example.groupify/callback/',
         accessToken: accessToken,
       );
 
       // _storage.delete(key: spotifyCacheKey);
-      // _storage.write(key: spotifyCacheKey, value: accessToken);
-      // _cache.write<SpotifyAccessToken>(key: spotifyCacheKey, value: SpotifyAccessToken(accessToken: accessToken));
-    } on FirebaseAuthException catch (e) {
-      throw LogInWithSpotifyFailure.fromCode(e.code);
-    } catch (_) {
-      throw const LogInWithSpotifyFailure();
+      //_storage.write(key: spotifyCacheKey, value: accessToken);
+      _cache.write<SpotifyAccessToken>(key: spotifyCacheKey, value: SpotifyAccessToken(accessToken: accessToken));
+    } catch (e) {
+      throw LogInWithSpotifyFailure(e.toString());
     }
   }
 

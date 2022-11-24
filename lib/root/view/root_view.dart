@@ -46,7 +46,7 @@ class _RootViewState extends State<RootView> {
         actions: [
           IconButton(
             onPressed: () async {
-              await RepositoryProvider.of<AuthRepository>(context).logOut();
+              BlocProvider.of<AppBloc>(context).add(AppLogoutRequested());
             },
             icon: const Icon(Icons.logout_rounded),
           )

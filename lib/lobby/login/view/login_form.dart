@@ -10,7 +10,7 @@ class LoginForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<LoginCubit, LoginState>(
+    BlocListener<LoginCubit, LoginState>(
       listener: (context, state) {
         if (state.status.isSubmissionFailure) {
           ScaffoldMessenger.of(context)
@@ -20,41 +20,46 @@ class LoginForm extends StatelessWidget {
                 content: Text(state.errorMessage ?? 'Authentication Failure'),
               ),
             );
-        } else if (state.status.isSubmissionSuccess) {
+        } else if (BlocProvider.of<AppBloc>(context).state.status == AppStatus.authenticated) {
           Navigator.of(context).pop();
         }
       },
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _SpotifyLoginButton(),
-              const SizedBox(width: 8),
-              CircleAvatar(
-                backgroundColor: BlocProvider.of<AppBloc>(context).state.status == AppStatus.spotifyAuthenticated
-                    ? Theme.of(context).colorScheme.primaryContainer
-                    : Theme.of(context).colorScheme.background,
-                child: const Icon(Icons.done_rounded),
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _GoogleLoginButton(),
-              const SizedBox(width: 8),
-              CircleAvatar(
-                backgroundColor: BlocProvider.of<AppBloc>(context).state.status == AppStatus.googleAuthenticated
-                    ? Theme.of(context).colorScheme.primaryContainer
-                    : Theme.of(context).colorScheme.background,
-                child: const Icon(Icons.done_rounded),
-              ),
-            ],
-          ),
-        ],
-      ),
+    );
+
+    return BlocBuilder<AppBloc, AppState>(
+      builder: (context, state) {
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _SpotifyLoginButton(),
+                const SizedBox(width: 8),
+                CircleAvatar(
+                  backgroundColor: state.spotifyAuthenticated
+                      ? Theme.of(context).colorScheme.primaryContainer
+                      : Theme.of(context).colorScheme.background,
+                  child: const Icon(Icons.done_rounded),
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _GoogleLoginButton(),
+                const SizedBox(width: 8),
+                CircleAvatar(
+                  backgroundColor: state.googleAuthenticated
+                      ? Theme.of(context).colorScheme.primaryContainer
+                      : Theme.of(context).colorScheme.background,
+                  child: const Icon(Icons.done_rounded),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 }

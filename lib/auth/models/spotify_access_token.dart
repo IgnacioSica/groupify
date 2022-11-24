@@ -14,10 +14,3 @@ class SpotifyAccessToken extends Equatable {
   @override
   List<Object?> get props => [accessToken];
 }
-
-class SpotifyAccessTokenEvent {
-  const SpotifyAccessTokenEvent({required this.accessToken, this.errorMessage});
-
-  final SpotifyAccessToken accessToken;
-  final String? errorMessage;
-}

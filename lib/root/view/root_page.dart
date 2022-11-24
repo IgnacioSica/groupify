@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:groupify/app/app.dart';
 import 'package:groupify/auth/auth.dart';
 import 'package:groupify/common/common.dart';
 import 'package:groupify/root/root.dart';
