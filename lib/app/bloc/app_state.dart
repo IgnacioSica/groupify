@@ -11,25 +11,23 @@ class AppState extends Equatable {
   const AppState._({
     required this.status,
     this.user = User.empty,
-    this.spotifyConnected = false,
+    this.spotifyAccessToken = SpotifyAccessToken.empty,
   });
 
-  const AppState.authenticated(User user) : this._(status: AppStatus.authenticated, user: user);
+  const AppState.authenticated(User user, SpotifyAccessToken spotifyAccessToken)
+      : this._(status: AppStatus.authenticated, user: user, spotifyAccessToken: spotifyAccessToken);
 
   const AppState.googleAuthenticated(User user) : this._(status: AppStatus.googleAuthenticated, user: user);
 
-  const AppState.spotifyAuthenticated(bool spotifyConnected)
-      : this._(
-          status: AppStatus.spotifyAuthenticated,
-          spotifyConnected: spotifyConnected,
-        );
+  const AppState.spotifyAuthenticated(SpotifyAccessToken spotifyConnected)
+      : this._(status: AppStatus.spotifyAuthenticated, spotifyAccessToken: spotifyConnected);
 
   const AppState.unauthenticated() : this._(status: AppStatus.unauthenticated);
 
   final AppStatus status;
   final User user;
-  final bool spotifyConnected;
+  final SpotifyAccessToken spotifyAccessToken;
 
   @override
-  List<Object> get props => [status, user];
+  List<Object> get props => [status, user, spotifyAccessToken];
 }

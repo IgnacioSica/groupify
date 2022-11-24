@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:groupify/common/common.dart';
@@ -7,6 +8,7 @@ class TrackRow extends StatefulWidget {
   final Track track;
   final List<Widget> actions;
   final int position;
+
   @override
   State<TrackRow> createState() => _TrackRowState();
 }
@@ -48,13 +50,28 @@ class _TrackRowState extends State<TrackRow> {
               ),
             ),
             Row(children: widget.actions),
-            FaIcon(
-              FontAwesomeIcons.heart,
-              //FontAwesomeIcons.solidHeart,
-              size: 18,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(width: 8),
+            if (widget.track.votes > 0)
+              IconButton(
+                onPressed: () {
+                  setState(() => widget.track.liked = !widget.track.liked);
+                },
+                visualDensity: VisualDensity.compact,
+                icon: FaIcon(
+                  widget.track.liked ? FontAwesomeIcons.heart : FontAwesomeIcons.solidHeart,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            if (widget.track.votes <= 0)
+              IconButton(
+                onPressed: () {},
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(
+                  Icons.remove_circle_outline_rounded,
+                  size: 18,
+                  color: CupertinoColors.destructiveRed,
+                ),
+              ),
             VoteCounter(track: widget.track),
           ],
         ),

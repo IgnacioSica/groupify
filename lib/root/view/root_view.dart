@@ -13,11 +13,20 @@ class _RootViewState extends State<RootView> {
   int _counter = 0;
   bool enhance = false;
 
+  static Future<void> _connectToSpotifyRemote(String accessToken) async {
+    await SpotifySdk.connectToSpotifyRemote(
+      clientId: 'b9a4881e77f4488eb882788cb106a297',
+      redirectUrl: "http://mysite.com/callback",
+      accessToken: accessToken,
+    );
+  }
+
   Future<void> _incrementCounter() async {
+    final spotifyAccessToken = RepositoryProvider.of<AuthRepository>(context).currentSpotifyAccessToken;
+    await _connectToSpotifyRemote(spotifyAccessToken.accessToken);
     setState(() {
       _counter++;
     });
-    // await SpotifySdk.play(spotifyUri: '7ID9hY0L3R4GKtvUThHa0q');
   }
 
   final List<Track> tracks = [Track.random(), Track.random(), Track.random(), Track.random(), Track.random()];
@@ -35,57 +44,41 @@ class _RootViewState extends State<RootView> {
       appBar: AppBar(
         title: Text(widget.title),
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.search)),
-          // IconButton(
-          //   onPressed: () async {
-          //     await RepositoryProvider.of<AuthRepository>(context).logOut();
-          //   },
-          //   icon: const Icon(Icons.logout_rounded),
-          // )
+          IconButton(
+            onPressed: () async {
+              await RepositoryProvider.of<AuthRepository>(context).logOut();
+            },
+            icon: const Icon(Icons.logout_rounded),
+          )
         ],
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
             const BaseTile(
-              margin: EdgeInsets.only(top: 8, left: 16, right: 16, bottom: 8),
+              margin: EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 16),
               child: NowPlaying(),
             ),
             BaseTile(
-              margin: const EdgeInsets.only(top: 8, left: 16, right: 16, bottom: 8),
+              margin: const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 16),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
                     children: [
-                      Expanded(
-                        child: Text(
-                          'Queue',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium!
-                              .copyWith(fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
+                      Text(
+                        'Queue',
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall!
+                            .copyWith(fontWeight: FontWeight.bold, color: Colors.white),
                       ),
-                      ElevatedButton.icon(
-                        key: const Key('connect_with_spotify_raisedButton'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: enhance ? Theme.of(context).colorScheme.primary : null,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        label: Text(
-                          'Enhance',
-                          style: enhance ? Theme.of(context).textTheme.labelLarge!.copyWith(color: Colors.black) : null,
-                        ),
-                        icon: Icon(CupertinoIcons.sparkles, color: enhance ? Colors.black : Colors.white),
-                        onPressed: () {
-                          setState(() {
-                            enhance = !enhance;
-                          });
-                        },
+                      const Spacer(),
+                      CircleAvatar(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        child: const Icon(Icons.queue_music_rounded),
                       ),
+                      //const SizedBox(width: 8),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -105,18 +98,18 @@ class _RootViewState extends State<RootView> {
                 ],
               ),
             ),
+            SuggestionsTile(),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Skip',
-        child: CustomAnimatedIcon(
-          iconA: const Icon(Icons.skip_next_rounded, key: ValueKey('ia')),
-          iconB: const Icon(Icons.people_rounded, key: ValueKey('ib')),
-          showA: _counter % 2 == 1,
-        ),
-      ),
+      floatingActionButton:
+          FloatingActionButton(onPressed: _incrementCounter, tooltip: 'Skip', child: const Icon(Icons.search)
+              // CustomAnimatedIcon(
+              //   iconA: const Icon(Icons.skip_next_rounded, key: ValueKey('ia')),
+              //   iconB: const Icon(Icons.people_rounded, key: ValueKey('ib')),
+              //   showA: _counter % 2 == 1,
+              // ),
+              ),
     );
   }
 }

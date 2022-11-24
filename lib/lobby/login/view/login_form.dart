@@ -80,7 +80,7 @@ class _GoogleLoginButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ElevatedButton.icon(
-      key: const Key('connect_with_spotify_raisedButton'),
+      key: const Key('connect_with_google_raisedButton'),
       style: ElevatedButton.styleFrom(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30),

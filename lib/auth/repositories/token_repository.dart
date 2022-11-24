@@ -1,3 +1,1 @@
-abstract class TokenRepository {
-  Future<String> get currentToken;
-}
+abstract class TokenRepository {}

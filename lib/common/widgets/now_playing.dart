@@ -98,8 +98,10 @@ class _NowPlayingState extends State<NowPlaying> with TickerProviderStateMixin {
                       child: StreamBuilder<int>(
                         stream: Stream<int>.periodic(const Duration(milliseconds: 150), (x) => 150),
                         builder: (context, periodicSnapshot) {
-                          if (!playerState.isPaused) {
-                            _millisecondsElapsed += periodicSnapshot!.data!.toDouble();
+                          if (periodicSnapshot.hasData) {
+                            if (!playerState.isPaused) {
+                              _millisecondsElapsed += periodicSnapshot.data!.toDouble();
+                            }
                           }
 
                           return LinearProgressIndicator(
@@ -140,6 +142,7 @@ class NowPlayingDummy extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const Spacer(),
               Row(
                 children: [
                   Expanded(
@@ -158,6 +161,7 @@ class NowPlayingDummy extends StatelessWidget {
                   IconButton(onPressed: () {}, icon: const Icon(Icons.play_arrow_rounded), iconSize: 32),
                 ],
               ),
+              const Spacer(),
               ClipRRect(
                 borderRadius: BorderRadius.circular(9),
                 child: const LinearProgressIndicator(minHeight: 6),

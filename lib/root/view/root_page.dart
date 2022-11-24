@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:groupify/auth/auth.dart';
 import 'package:groupify/common/common.dart';
+import 'package:groupify/root/root.dart';
 import 'package:spotify_sdk/models/connection_status.dart';
 import 'package:spotify_sdk/models/crossfade_state.dart';
 import 'package:spotify_sdk/models/image_uri.dart';
@@ -29,8 +32,37 @@ class RootPage extends StatelessWidget {
     //   ),
     // );
 
-    return const RootView(title: 'Groupify');
     //return const Home();
+
+    return const RootView(title: 'Groupify');
+
+    final spotifyAccessToken = RepositoryProvider.of<AuthRepository>(context).currentSpotifyAccessToken;
+
+    return FutureBuilder<void>(
+      future: _connectToSpotifyRemote(spotifyAccessToken.accessToken),
+      builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasError) {
+            return const Text('Error');
+          } else {
+            return const RootView(title: 'Groupify');
+          }
+        } else {
+          return Text('State: ${snapshot.connectionState}');
+        }
+      },
+    );
+    //return const Home();
+  }
+
+  static Future<void> _connectToSpotifyRemote(String accessToken) async {
+    await SpotifySdk.connectToSpotifyRemote(
+      clientId: 'b9a4881e77f4488eb882788cb106a297',
+      redirectUrl: "http://mysite.com/callback",
+      accessToken: accessToken,
+    );
   }
 }
 
