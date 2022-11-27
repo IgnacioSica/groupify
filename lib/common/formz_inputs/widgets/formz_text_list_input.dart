@@ -40,9 +40,10 @@ class _FormzTextListInputState<T extends FormzBaseCubit> extends State<FormzText
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<T, FormzBaseCubitState>(
-      buildWhen: (ps, s) => ps.readProperty<dynamic>(widget.propKey).value != s.readProperty<dynamic>(widget.propKey).value,
+      buildWhen: (ps, s) =>
+          ps.readFormzProperty<dynamic>(widget.propKey).value != s.readFormzProperty<dynamic>(widget.propKey).value,
       builder: (BuildContext context, state) {
-        final prop = state.readProperty<List<String>?>(widget.propKey) as FormzTextList<String>;
+        final prop = state.readFormzProperty<List<String>?>(widget.propKey) as FormzTextList<String>;
         final textTheme = Theme.of(context).textTheme;
         return Column(
           children: [

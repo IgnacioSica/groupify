@@ -34,7 +34,7 @@ class LoginForm extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _SpotifyLoginButton(),
+                _SpotifyLoginButton(!state.spotifyAuthenticated),
                 const SizedBox(width: 8),
                 CircleAvatar(
                   backgroundColor: state.spotifyAuthenticated
@@ -47,7 +47,7 @@ class LoginForm extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _GoogleLoginButton(),
+                _GoogleLoginButton(!state.googleAuthenticated),
                 const SizedBox(width: 8),
                 CircleAvatar(
                   backgroundColor: state.googleAuthenticated
@@ -65,6 +65,10 @@ class LoginForm extends StatelessWidget {
 }
 
 class _SpotifyLoginButton extends StatelessWidget {
+  const _SpotifyLoginButton(this.active);
+
+  final bool active;
+
   @override
   Widget build(BuildContext context) {
     return ElevatedButton.icon(
@@ -76,12 +80,16 @@ class _SpotifyLoginButton extends StatelessWidget {
       ),
       label: const Text('Connect with Spotify'),
       icon: const Icon(FontAwesomeIcons.spotify, color: Colors.white),
-      onPressed: () => context.read<LoginCubit>().logInWithSpotify(),
+      onPressed: active ? () => context.read<LoginCubit>().logInWithSpotify() : null,
     );
   }
 }
 
 class _GoogleLoginButton extends StatelessWidget {
+  const _GoogleLoginButton(this.active);
+
+  final bool active;
+
   @override
   Widget build(BuildContext context) {
     return ElevatedButton.icon(
@@ -93,7 +101,7 @@ class _GoogleLoginButton extends StatelessWidget {
       ),
       label: const Text('Connect with Google'),
       icon: const Icon(FontAwesomeIcons.google, color: Colors.white),
-      onPressed: () => context.read<LoginCubit>().logInWithGoogle(),
+      onPressed: active ? () => context.read<LoginCubit>().logInWithGoogle() : null,
     );
   }
 }

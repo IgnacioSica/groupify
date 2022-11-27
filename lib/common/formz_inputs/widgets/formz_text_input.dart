@@ -26,7 +26,7 @@ class _FormzTextInputState<T extends FormzBaseCubit> extends State<FormzTextInpu
     final cubit = BlocProvider.of<T>(context);
 
     _controller = TextEditingController()
-      ..text = cubit.state.readProperty<String>(widget.propKey).value ?? ''
+      ..text = cubit.state.readFormzProperty<String>(widget.propKey).value ?? ''
       ..addListener(() => cubit.propertyChanged(widget.propKey, _controller.text));
     super.initState();
   }
@@ -40,10 +40,11 @@ class _FormzTextInputState<T extends FormzBaseCubit> extends State<FormzTextInpu
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<T, FormzBaseCubitState>(
-      buildWhen: (ps, s) => ps.readProperty<String>(widget.propKey).value != s.readProperty<String>(widget.propKey).value,
+      buildWhen: (ps, s) =>
+          ps.readFormzProperty<String>(widget.propKey).value != s.readFormzProperty<String>(widget.propKey).value,
       builder: (BuildContext context, state) {
         if (state.status == FormzStatus.pure) _controller.text = '';
-        final prop = state.readProperty<String>(widget.propKey) as FormzText;
+        final prop = state.readFormzProperty<String>(widget.propKey) as FormzText;
         final textTheme = Theme.of(context).textTheme;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,

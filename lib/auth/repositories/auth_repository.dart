@@ -49,7 +49,10 @@ class AuthRepository implements TokenRepository {
   static const userCacheKey = '__user_cache_key__';
 
   @visibleForTesting
-  static const spotifyCacheKey = '__spotify_cache_key__';
+  static const spotifyUserStatusCacheKey = '__spotify_user_status_cache_key__';
+
+  @visibleForTesting
+  static const spotifyAccessTokenCacheKey = '__spotify_access_token_cache_key__';
 
   Stream<User> get user {
     return _firebaseAuth.authStateChanges().map((firebaseUser) {
@@ -59,60 +62,74 @@ class AuthRepository implements TokenRepository {
     });
   }
 
-  Stream<SpotifyAccessToken> get spotifyUser {
+  Stream<SpotifyUserStatus> get spotifyUserStatus {
+    try {
+      return SpotifySdk.subscribeUserStatus().asyncMap((userStatus) async {
+        final spotifyUserStatus = userStatus.isLoggedIn() ? const SpotifyUserStatus(logged: true) : SpotifyUserStatus.empty;
+        _cache.write(key: spotifyUserStatusCacheKey, value: spotifyUserStatus);
+        return spotifyUserStatus;
+      });
+    } catch (e) {
+      return Stream.fromFuture(getSpotifyAccessToken()).asyncMap((token) {
+        _cache.write(key: spotifyAccessTokenCacheKey, value: token);
+        return SpotifyUserStatus.empty;
+      });
+    }
+  }
+
+  Stream<SpotifyAccessToken> get spotifyAccessToken {
     try {
       return SpotifySdk.subscribeUserStatus().asyncMap((userStatus) async {
         if (userStatus.isLoggedIn()) {
-          return _cache.read<SpotifyAccessToken>(key: spotifyCacheKey) ?? SpotifyAccessToken.empty;
+          final spotifyAccessToken = _cache.read<SpotifyAccessToken>(key: spotifyAccessTokenCacheKey) ??
+              SpotifyAccessToken(accessToken: await getSpotifyAccessToken());
+
+          return spotifyAccessToken;
         } else {
           return SpotifyAccessToken.empty;
         }
       });
     } catch (e) {
       return Stream.fromFuture(getSpotifyAccessToken()).asyncMap((token) {
-        _cache.write(key: spotifyCacheKey, value: token);
+        _cache.write(key: spotifyAccessTokenCacheKey, value: token);
         return SpotifyAccessToken(accessToken: token);
       });
     }
   }
 
-  // Stream<ConnectionStatus> get connectionStatus {
-  //   return SpotifySdk.subscribeConnectionStatus().asyncMap((connectionStatus) async {
-  //     print("========>" + jsonEncode(connectionStatus));
-  //     return connectionStatus;
-  //   });
-  // }
-
-  // Stream<SpotifyAccessTokenEvent> get spotifyAccessToken {
-  //   return SpotifySdk.subscribeConnectionStatus().asyncMap((event) async {
-  //     if (!event.connected) {
-  //       return SpotifyAccessTokenEvent(accessToken: SpotifyAccessToken.empty, errorMessage: event.errorDetails);
-  //     }
-  //
-  //     SpotifySdk.subscribeUserStatus()
-  //
-  //     return const SpotifyAccessTokenEvent(accessToken: SpotifyAccessToken.empty);
-  //   });
-  //   // return _firebaseAuth.authStateChanges().map((firebaseUser) {
-  //   //   final user = firebaseUser == null ? User.empty : firebaseUser.toUser;
-  //   //   _cache.write(key: userCacheKey, value: user);
-  //   //   // final accessToken = await storage.read(key: spotifyCacheKey);
-  //   //   // final user = firebaseUser == null ? User.empty : firebaseUser.toUser;
-  //   //   // _cache.write(key: spotifyCacheKey, value: storage.read(key: spotifyCacheKey));
-  //   //   //return user;
-  //   // });
-  // }
+  Stream<SpotifyConnectionStatus> get spotifyConnection {
+    try {
+      return SpotifySdk.subscribeConnectionStatus().asyncMap((element) async {
+        if (element.connected) {
+          return SpotifyConnectionStatus(connectionStatus: element);
+        } else {
+          connectToSpotify();
+          return SpotifyConnectionStatus.empty;
+        }
+      });
+    } catch (e) {
+      return Stream.fromFuture(getSpotifyAccessToken()).asyncMap((token) {
+        _cache.write(key: spotifyAccessTokenCacheKey, value: token);
+        connectToSpotify(accessToken: token);
+        return SpotifyConnectionStatus.empty;
+      });
+    }
+  }
 
   User get currentUser {
     return _cache.read<User>(key: userCacheKey) ?? User.empty;
   }
 
+  SpotifyUserStatus get currentSpotifyUserStatus {
+    return _cache.read<SpotifyUserStatus>(key: spotifyUserStatusCacheKey) ?? SpotifyUserStatus.empty;
+  }
+
   SpotifyAccessToken get currentSpotifyAccessToken {
-    return _cache.read<SpotifyAccessToken>(key: spotifyCacheKey) ?? SpotifyAccessToken.empty;
+    return _cache.read<SpotifyAccessToken>(key: spotifyAccessTokenCacheKey) ?? SpotifyAccessToken.empty;
   }
 
   Future<String> getSpotifyAccessToken() async {
-    return await SpotifySdk.getAccessToken(
+    final accessToken = await SpotifySdk.getAccessToken(
       clientId: "b9a4881e77f4488eb882788cb106a297",
       redirectUrl: "https://com.example.groupify/callback/",
       scope: [
@@ -126,34 +143,25 @@ class AuthRepository implements TokenRepository {
         'user-library-read',
       ].join(","),
     );
+
+    _cache.write<SpotifyUserStatus>(key: spotifyUserStatusCacheKey, value: const SpotifyUserStatus(logged: true));
+    _cache.write<SpotifyAccessToken>(key: spotifyAccessTokenCacheKey, value: SpotifyAccessToken(accessToken: accessToken));
+
+    return accessToken;
+  }
+
+  Future<bool> connectToSpotify({String? accessToken}) async {
+    return await SpotifySdk.connectToSpotifyRemote(
+      clientId: 'b9a4881e77f4488eb882788cb106a297',
+      redirectUrl: 'https://com.example.groupify/callback/',
+      accessToken: accessToken,
+    );
   }
 
   Future<void> logInWithSpotify() async {
     try {
-      final accessToken = await SpotifySdk.getAccessToken(
-        clientId: "b9a4881e77f4488eb882788cb106a297",
-        redirectUrl: "https://com.example.groupify/callback/",
-        scope: [
-          'app-remote-control',
-          'user-library-modify',
-          'user-read-currently-playing',
-          'user-modify-playback-state',
-          'user-read-playback-state',
-          'user-read-recently-played',
-          'user-read-private',
-          'user-library-read',
-        ].join(","),
-      );
-
-      await SpotifySdk.connectToSpotifyRemote(
-        clientId: 'b9a4881e77f4488eb882788cb106a297',
-        redirectUrl: 'https://com.example.groupify/callback/',
-        accessToken: accessToken,
-      );
-
-      // _storage.delete(key: spotifyCacheKey);
-      //_storage.write(key: spotifyCacheKey, value: accessToken);
-      _cache.write<SpotifyAccessToken>(key: spotifyCacheKey, value: SpotifyAccessToken(accessToken: accessToken));
+      final accessToken = await getSpotifyAccessToken();
+      await connectToSpotify(accessToken: accessToken);
     } catch (e) {
       throw LogInWithSpotifyFailure(e.toString());
     }
@@ -191,7 +199,8 @@ class AuthRepository implements TokenRepository {
         _firebaseAuth.signOut(),
       ]);
 
-      _cache.delete(key: spotifyCacheKey);
+      _cache.delete(key: spotifyUserStatusCacheKey);
+      _cache.delete(key: spotifyAccessTokenCacheKey);
     } catch (_) {
       throw LogOutFailure();
     }

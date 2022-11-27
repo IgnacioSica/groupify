@@ -24,9 +24,10 @@ class _SpotifyImageBuilderState extends State<SpotifyImageBuilder> {
       builder: (BuildContext context, AsyncSnapshot<Uint8List?> snapshot) {
         if (snapshot.hasData) {
           return FadeInImage(
-              image: MemoryImage(snapshot.data!),
-              placeholder: const CachedNetworkImageProvider(
-                  'https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Spotify_App_Logo.svg/2048px-Spotify_App_Logo.svg.png'));
+            image: MemoryImage(snapshot.data!),
+            placeholder: const CachedNetworkImageProvider(
+                'https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/A_black_image.jpg/640px-A_black_image.jpg'),
+          );
         } else if (snapshot.hasError) {
           return SizedBox(
             width: ImageDimension.large.value.toDouble(),
@@ -37,7 +38,6 @@ class _SpotifyImageBuilderState extends State<SpotifyImageBuilder> {
           return SizedBox(
             width: ImageDimension.large.value.toDouble(),
             height: ImageDimension.large.value.toDouble(),
-            child: const Center(child: Text('Getting image...')),
           );
         }
       },

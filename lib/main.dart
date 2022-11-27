@@ -13,6 +13,7 @@ void main() {
       await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
       final authenticationRepository = AuthRepository();
       await authenticationRepository.user.first;
+      await authenticationRepository.connectToSpotify();
       runApp(App(authenticationRepository: authenticationRepository));
     },
   );

@@ -9,7 +9,14 @@ abstract class AppEvent extends Equatable {
 
 class AppLogoutRequested extends AppEvent {}
 
-class AppUpdate extends AppEvent {}
+class AppUpdate extends AppEvent {
+  // const AppUpdate(this.spotifyUserStatus);
+  //
+  // final SpotifyUserStatus spotifyUserStatus;
+  //
+  // @override
+  // List<Object> get props => [spotifyUserStatus];
+}
 
 class AppUserChanged extends AppEvent {
   const AppUserChanged(this.user);
@@ -21,10 +28,19 @@ class AppUserChanged extends AppEvent {
 }
 
 class AppSpotifyUserChanged extends AppEvent {
-  const AppSpotifyUserChanged(this.spotifyAccessToken);
+  const AppSpotifyUserChanged(this.spotifyUserStatus);
 
-  final SpotifyAccessToken spotifyAccessToken;
+  final SpotifyUserStatus spotifyUserStatus;
 
   @override
-  List<Object> get props => [spotifyAccessToken];
+  List<Object> get props => [spotifyUserStatus];
 }
+
+// class AppSpotifyUserChanged extends AppEvent {
+//   const AppSpotifyUserChanged(this.spotifyAccessToken);
+//
+//   final SpotifyAccessToken spotifyAccessToken;
+//
+//   @override
+//   List<Object> get props => [spotifyAccessToken];
+// }

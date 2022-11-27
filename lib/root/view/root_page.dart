@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_ui_firestore/firebase_ui_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,12 +28,12 @@ class RootPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // return MultiBlocProvider(
-    //   providers: const [],
-    //   child: const RootView(
-    //     title: 'Groupify',
-    //   ),
-    // );
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (BuildContext context) => RootCubit()),
+      ],
+      child: const RootView(title: 'Groupify'),
+    );
 
     //return const Home();
 

@@ -34,15 +34,12 @@ class _RootViewState extends State<RootView> {
   @override
   Widget build(BuildContext context) {
     tracks.sort((a, b) => -a.votes.compareTo(b.votes));
-    // for (int i = 0; i < tracks.length; i++) {
-    //   tracks[i].position = i + 1;
-    // }
-    // tracks.shuffle();
-
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: Text(widget.title),
+        //title: Text(widget.title),
+        title: const RoomTitle(),
+
         actions: [
           IconButton(
             onPressed: () async {
@@ -57,7 +54,7 @@ class _RootViewState extends State<RootView> {
           children: [
             const BaseTile(
               margin: EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 16),
-              child: NowPlaying(),
+              child: NowPlayingWid(),
             ),
             BaseTile(
               margin: const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 16),
@@ -99,6 +96,20 @@ class _RootViewState extends State<RootView> {
               ),
             ),
             SuggestionsTile(),
+            BaseTile(
+              child: FirestoreListView<Map<String, dynamic>>(
+                pageSize: 10,
+                query: FirebaseFirestore.instance.collection('rooms'),
+                shrinkWrap: true,
+                emptyBuilder: (context) => const Text('empty'),
+                errorBuilder: (context, obj, st) => const Text('error'),
+                itemBuilder: (context, snapshot) {
+                  Map<String, dynamic> user = snapshot.data();
+
+                  return Text('Room name is ${user['name']}');
+                },
+              ),
+            ),
           ],
         ),
       ),

@@ -24,9 +24,9 @@ class FormzNumSlidingInput<T extends FormzBaseCubit, N extends num> extends Stat
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<T, FormzBaseCubitState>(
-      buildWhen: (ps, s) => ps.readProperty<N?>(propKey).value != s.readProperty<N?>(propKey).value,
+      buildWhen: (ps, s) => ps.readFormzProperty<N?>(propKey).value != s.readFormzProperty<N?>(propKey).value,
       builder: (BuildContext context, state) {
-        final prop = state.readProperty<N?>(propKey) as FormzNumber<N>;
+        final prop = state.readFormzProperty<N?>(propKey) as FormzNumber<N>;
         final textTheme = Theme.of(context).textTheme;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,

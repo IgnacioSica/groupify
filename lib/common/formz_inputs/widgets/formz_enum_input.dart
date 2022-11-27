@@ -22,9 +22,9 @@ class FormzEnumInput<T extends FormzBaseCubit, E extends IconEnum> extends State
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<T, FormzBaseCubitState>(
-      buildWhen: (ps, s) => ps.readProperty<E?>(propKey).value != s.readProperty<E?>(propKey).value,
+      buildWhen: (ps, s) => ps.readFormzProperty<E?>(propKey).value != s.readFormzProperty<E?>(propKey).value,
       builder: (BuildContext context, state) {
-        final prop = state.readProperty<E?>(propKey);
+        final prop = state.readFormzProperty<E?>(propKey);
         final textTheme = Theme.of(context).textTheme;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,7 +43,7 @@ class FormzEnumInput<T extends FormzBaseCubit, E extends IconEnum> extends State
                   Expanded(
                     child: CupertinoSlidingSegmentedControl(
                       backgroundColor: Colors.grey.shade200,
-                      groupValue: BlocProvider.of<T>(context).state.readProperty<E?>(propKey).value,
+                      groupValue: BlocProvider.of<T>(context).state.readFormzProperty<E?>(propKey).value,
                       children: {for (var v in Enums.map[enumKey]!) v: SegmentOption<T, E>(option: v, propKey: propKey)},
                       onValueChanged: (dynamic value) =>
                           BlocProvider.of<T>(context).propertyChanged(propKey, value as Object),
@@ -82,7 +82,7 @@ class SegmentOption<T extends FormzBaseCubit, E extends IconEnum> extends Statel
                   child: Icon(
                     option.icon,
                     size: Theme.of(context).textTheme.headlineLarge!.fontSize,
-                    color: BlocProvider.of<T>(context).state.readProperty<E?>(propKey).value == option
+                    color: BlocProvider.of<T>(context).state.readFormzProperty<E?>(propKey).value == option
                         ? CupertinoColors.activeBlue
                         : CupertinoColors.systemGrey,
                   ),

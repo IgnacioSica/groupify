@@ -3,8 +3,8 @@ import 'package:groupify/common/common.dart';
 
 class CustomAnimatedIcon extends StatelessWidget {
   const CustomAnimatedIcon({Key? key, required this.iconA, required this.iconB, required this.showA}) : super(key: key);
-  final Icon iconA;
-  final Icon iconB;
+  final Widget iconA;
+  final Widget iconB;
   final bool showA;
 
   @override

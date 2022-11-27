@@ -25,9 +25,9 @@ class FormzDateTimeInput<T extends FormzBaseCubit> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<T, FormzBaseCubitState>(
-      buildWhen: (ps, s) => ps.readProperty<DateTime?>(propKey).value != s.readProperty<DateTime?>(propKey).value,
+      buildWhen: (ps, s) => ps.readFormzProperty<DateTime?>(propKey).value != s.readFormzProperty<DateTime?>(propKey).value,
       builder: (BuildContext context, state) {
-        final prop = state.readProperty<DateTime?>(propKey);
+        final prop = state.readFormzProperty<DateTime?>(propKey);
         final textTheme = Theme.of(context).textTheme;
         return InkWell(
           onTap: () => showDateTimePicker(context),
@@ -85,7 +85,7 @@ class FormzDateTimeInput<T extends FormzBaseCubit> extends StatelessWidget {
     showCupertinoModalPopup<Container>(
       context: context,
       builder: (BuildContext builder) {
-        final prop = BlocProvider.of<T>(context).state.readProperty<DateTime?>(propKey) as FormzDateTime;
+        final prop = BlocProvider.of<T>(context).state.readFormzProperty<DateTime?>(propKey) as FormzDateTime;
         return Container(
           height: MediaQuery.of(context).copyWith().size.height * 0.25,
           decoration: const BoxDecoration(

@@ -31,7 +31,21 @@ abstract class FormzBaseCubitState extends Equatable with ValidateMixin {
     return newPropsMap;
   }
 
-  FormzBase<T, String> readProperty<T>(String key) {
+  T readProperty<T>(String key) {
+    late T property;
+
+    if (!key.contains('->')) {
+      property = propsMap[key]! as T;
+    } else {
+      final keys = key.split('->');
+      final obj = propsMap[keys[0]]! as FormzBaseCubitState;
+      property = obj.readProperty<T>(keys.sublist(1).join('->'));
+    }
+
+    return property;
+  }
+
+  FormzBase<T, String> readFormzProperty<T>(String key) {
     late FormzBase<T, String> property;
 
     if (!key.contains('->')) {
@@ -39,7 +53,7 @@ abstract class FormzBaseCubitState extends Equatable with ValidateMixin {
     } else {
       final keys = key.split('->');
       final obj = propsMap[keys[0]]! as FormzBaseCubitState;
-      property = obj.readProperty<T>(keys.sublist(1).join('->'));
+      property = obj.readFormzProperty<T>(keys.sublist(1).join('->'));
     }
 
     return property;

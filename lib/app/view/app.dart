@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:groupify/app/app.dart';
 import 'package:groupify/auth/auth.dart';
+import 'package:groupify/common/repositories/repositories.dart';
 
 class App extends StatelessWidget {
   const App({
@@ -19,6 +20,7 @@ class App extends StatelessWidget {
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider.value(value: _authenticationRepository),
+        RepositoryProvider.value(value: SpotifyRepository(_authenticationRepository)),
       ],
       child: BlocProvider(
         create: (_) => AppBloc(authenticationRepository: _authenticationRepository),

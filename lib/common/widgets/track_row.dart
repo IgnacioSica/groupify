@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:groupify/common/common.dart';
 
 class TrackRow extends StatefulWidget {
@@ -50,28 +49,18 @@ class _TrackRowState extends State<TrackRow> {
               ),
             ),
             Row(children: widget.actions),
-            if (widget.track.votes > 0)
-              IconButton(
-                onPressed: () {
-                  setState(() => widget.track.liked = !widget.track.liked);
-                },
-                visualDensity: VisualDensity.compact,
-                icon: FaIcon(
-                  widget.track.liked ? FontAwesomeIcons.heart : FontAwesomeIcons.solidHeart,
-                  size: 18,
-                  color: Theme.of(context).colorScheme.primary,
+            CustomAnimatedIcon(
+                iconA: const LikeButton(spotifyUri: 'spotify:track:58kNJana4w5BIjlZE2wq5m'),
+                iconB: IconButton(
+                  onPressed: () {},
+                  visualDensity: VisualDensity.compact,
+                  icon: const Icon(
+                    Icons.remove_circle_outline_rounded,
+                    size: 18,
+                    color: CupertinoColors.destructiveRed,
+                  ),
                 ),
-              ),
-            if (widget.track.votes <= 0)
-              IconButton(
-                onPressed: () {},
-                visualDensity: VisualDensity.compact,
-                icon: const Icon(
-                  Icons.remove_circle_outline_rounded,
-                  size: 18,
-                  color: CupertinoColors.destructiveRed,
-                ),
-              ),
+                showA: widget.track.votes > 0),
             VoteCounter(track: widget.track),
           ],
         ),

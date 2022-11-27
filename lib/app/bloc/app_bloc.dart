@@ -18,41 +18,45 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     _userSubscription = _authenticationRepository.user.listen(
       (user) => add(AppUserChanged(user)),
     );
-    _connectionSubscription = _authenticationRepository.spotifyUser.listen(
+    // _connectionSubscription = _authenticationRepository.spotifyAccessToken.listen(
+    //   (spotifyAccessToken) => add(AppSpotifyUserChanged(spotifyAccessToken)),
+    // );
+    _spotifyUserStatusSubscription = _authenticationRepository.spotifyUserStatus.listen(
       (spotifyAccessToken) => add(AppSpotifyUserChanged(spotifyAccessToken)),
     );
   }
 
   final AuthRepository _authenticationRepository;
   late final StreamSubscription<User> _userSubscription;
+  late final StreamSubscription<SpotifyUserStatus> _spotifyUserStatusSubscription;
   late final StreamSubscription<SpotifyAccessToken> _connectionSubscription;
 
   static AppState _init(AuthRepository authRepo) {
-    if (authRepo.currentUser.isNotEmpty && authRepo.currentSpotifyAccessToken.isNotEmpty) {
-      return AppState.authenticated(authRepo.currentUser, authRepo.currentSpotifyAccessToken);
+    if (authRepo.currentUser.isNotEmpty && authRepo.currentSpotifyUserStatus.isNotEmpty) {
+      return AppState.authenticated(authRepo.currentUser, authRepo.currentSpotifyUserStatus);
     } else {
-      return AppState.unauthenticated(authRepo.currentUser, authRepo.currentSpotifyAccessToken);
+      return AppState.unauthenticated(authRepo.currentUser, authRepo.currentSpotifyUserStatus);
     }
   }
 
-  Future<void> _validateState(User user, SpotifyAccessToken spotifyAccessToken, Emitter<AppState> emit) async {
-    if (user.isNotEmpty && spotifyAccessToken.isNotEmpty) {
-      emit(AppState.authenticated(user, spotifyAccessToken));
+  Future<void> _validateState(User user, SpotifyUserStatus spotifyUserStatus, Emitter<AppState> emit) async {
+    if (user.isNotEmpty && spotifyUserStatus.isNotEmpty) {
+      emit(AppState.authenticated(user, spotifyUserStatus));
     } else {
-      emit(AppState.unauthenticated(user, spotifyAccessToken));
+      emit(AppState.unauthenticated(user, spotifyUserStatus));
     }
   }
 
   Future<void> _onUserChanged(AppUserChanged event, Emitter<AppState> emit) async {
-    _validateState(event.user, _authenticationRepository.currentSpotifyAccessToken, emit);
+    _validateState(event.user, state.spotifyUserStatus, emit);
   }
 
   Future<void> _onSpotifyUserChanged(AppSpotifyUserChanged event, Emitter<AppState> emit) async {
-    _validateState(_authenticationRepository.currentUser, event.spotifyAccessToken, emit);
+    _validateState(_authenticationRepository.currentUser, event.spotifyUserStatus, emit);
   }
 
   Future<void> _onUpdate(AppUpdate event, Emitter<AppState> emit) async {
-    _validateState(_authenticationRepository.currentUser, _authenticationRepository.currentSpotifyAccessToken, emit);
+    _validateState(_authenticationRepository.currentUser, _authenticationRepository.currentSpotifyUserStatus, emit);
   }
 
   void _onLogoutRequested(AppLogoutRequested event, Emitter<AppState> emit) async {

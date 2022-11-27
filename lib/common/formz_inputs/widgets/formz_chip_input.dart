@@ -16,7 +16,7 @@ class FormzChipInput<T extends FormzBaseCubit> extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<T, FormzBaseCubitState>(
       builder: (BuildContext context, state) {
-        final prop = state.readProperty<List<String>?>(propKey) as FormzObjectList<String>;
+        final prop = state.readFormzProperty<List<String>?>(propKey) as FormzObjectList<String>;
         final textTheme = Theme.of(context).textTheme;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,7 +60,7 @@ class AuxChipInput<T extends FormzBaseCubit> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final prop = BlocProvider.of<T>(context).state.readProperty<List<String>?>(propKey) as FormzObjectList<String>;
+    final prop = BlocProvider.of<T>(context).state.readFormzProperty<List<String>?>(propKey) as FormzObjectList<String>;
 
     return InkWell(
       onTap: () {

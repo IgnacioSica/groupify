@@ -38,10 +38,10 @@ class FormzPickerInput<T extends FormzBaseCubit, O extends ToTileMixin> extends 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<T, FormzBaseCubitState>(
-      buildWhen: (ps, s) => ps.readProperty<O?>(propKey).value != s.readProperty<O?>(propKey).value,
+      buildWhen: (ps, s) => ps.readFormzProperty<O?>(propKey).value != s.readFormzProperty<O?>(propKey).value,
       builder: (context, state) {
         final theme = Theme.of(context).textTheme;
-        final prop = state.readProperty<O?>(propKey) as FormzObject<O?>;
+        final prop = state.readFormzProperty<O?>(propKey) as FormzObject<O?>;
         return SizedBox(
           height: height - 8,
           child: Column(

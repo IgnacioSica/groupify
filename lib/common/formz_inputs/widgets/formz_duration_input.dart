@@ -20,9 +20,9 @@ class FormzDurationInput<T extends FormzBaseCubit> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<T, FormzBaseCubitState>(
-      buildWhen: (ps, s) => ps.readProperty<Duration?>(propKey).value != s.readProperty<Duration?>(propKey).value,
+      buildWhen: (ps, s) => ps.readFormzProperty<Duration?>(propKey).value != s.readFormzProperty<Duration?>(propKey).value,
       builder: (BuildContext context, state) {
-        final prop = state.readProperty<Duration?>(propKey);
+        final prop = state.readFormzProperty<Duration?>(propKey);
         final textTheme = Theme.of(context).textTheme;
         return InkWell(
           onTap: () => showDurationPicker(context),
@@ -78,7 +78,7 @@ class FormzDurationInput<T extends FormzBaseCubit> extends StatelessWidget {
     showCupertinoModalPopup<Container>(
       context: context,
       builder: (BuildContext builder) {
-        final prop = BlocProvider.of<T>(context).state.readProperty<Duration?>(propKey) as FormzDuration;
+        final prop = BlocProvider.of<T>(context).state.readFormzProperty<Duration?>(propKey) as FormzDuration;
         return Container(
           height: MediaQuery.of(context).copyWith().size.height * 0.25,
           decoration: const BoxDecoration(
