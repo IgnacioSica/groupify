@@ -18,9 +18,6 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     _userSubscription = _authenticationRepository.user.listen(
       (user) => add(AppUserChanged(user)),
     );
-    // _connectionSubscription = _authenticationRepository.spotifyAccessToken.listen(
-    //   (spotifyAccessToken) => add(AppSpotifyUserChanged(spotifyAccessToken)),
-    // );
     _spotifyUserStatusSubscription = _authenticationRepository.spotifyUserStatus.listen(
       (spotifyAccessToken) => add(AppSpotifyUserChanged(spotifyAccessToken)),
     );
@@ -29,7 +26,6 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   final AuthRepository _authenticationRepository;
   late final StreamSubscription<User> _userSubscription;
   late final StreamSubscription<SpotifyUserStatus> _spotifyUserStatusSubscription;
-  late final StreamSubscription<SpotifyAccessToken> _connectionSubscription;
 
   static AppState _init(AuthRepository authRepo) {
     if (authRepo.currentUser.isNotEmpty && authRepo.currentSpotifyUserStatus.isNotEmpty) {
@@ -67,7 +63,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   @override
   Future<void> close() {
     _userSubscription.cancel();
-    _connectionSubscription.cancel();
+    _spotifyUserStatusSubscription.cancel();
     return super.close();
   }
 }

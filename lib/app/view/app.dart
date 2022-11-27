@@ -21,6 +21,7 @@ class App extends StatelessWidget {
       providers: [
         RepositoryProvider.value(value: _authenticationRepository),
         RepositoryProvider.value(value: SpotifyRepository(_authenticationRepository)),
+        RepositoryProvider.value(value: FirestoreRepository(_authenticationRepository)),
       ],
       child: BlocProvider(
         create: (_) => AppBloc(authenticationRepository: _authenticationRepository),

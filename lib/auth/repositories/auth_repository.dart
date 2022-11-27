@@ -77,26 +77,6 @@ class AuthRepository implements TokenRepository {
     }
   }
 
-  Stream<SpotifyAccessToken> get spotifyAccessToken {
-    try {
-      return SpotifySdk.subscribeUserStatus().asyncMap((userStatus) async {
-        if (userStatus.isLoggedIn()) {
-          final spotifyAccessToken = _cache.read<SpotifyAccessToken>(key: spotifyAccessTokenCacheKey) ??
-              SpotifyAccessToken(accessToken: await getSpotifyAccessToken());
-
-          return spotifyAccessToken;
-        } else {
-          return SpotifyAccessToken.empty;
-        }
-      });
-    } catch (e) {
-      return Stream.fromFuture(getSpotifyAccessToken()).asyncMap((token) {
-        _cache.write(key: spotifyAccessTokenCacheKey, value: token);
-        return SpotifyAccessToken(accessToken: token);
-      });
-    }
-  }
-
   Stream<SpotifyConnectionStatus> get spotifyConnection {
     try {
       return SpotifySdk.subscribeConnectionStatus().asyncMap((element) async {
@@ -124,10 +104,6 @@ class AuthRepository implements TokenRepository {
     return _cache.read<SpotifyUserStatus>(key: spotifyUserStatusCacheKey) ?? SpotifyUserStatus.empty;
   }
 
-  SpotifyAccessToken get currentSpotifyAccessToken {
-    return _cache.read<SpotifyAccessToken>(key: spotifyAccessTokenCacheKey) ?? SpotifyAccessToken.empty;
-  }
-
   Future<String> getSpotifyAccessToken() async {
     final accessToken = await SpotifySdk.getAccessToken(
       clientId: "b9a4881e77f4488eb882788cb106a297",
@@ -145,7 +121,8 @@ class AuthRepository implements TokenRepository {
     );
 
     _cache.write<SpotifyUserStatus>(key: spotifyUserStatusCacheKey, value: const SpotifyUserStatus(logged: true));
-    _cache.write<SpotifyAccessToken>(key: spotifyAccessTokenCacheKey, value: SpotifyAccessToken(accessToken: accessToken));
+    _cache.write<SpotifyAccessToken>(
+        key: spotifyAccessTokenCacheKey, value: SpotifyAccessToken(accessToken: accessToken, issuedAt: DateTime.now()));
 
     return accessToken;
   }

@@ -36,28 +36,6 @@ class RootPage extends StatelessWidget {
     );
 
     //return const Home();
-
-    return const RootView(title: 'Groupify');
-
-    final spotifyAccessToken = RepositoryProvider.of<AuthRepository>(context).currentSpotifyAccessToken;
-
-    return FutureBuilder<void>(
-      future: _connectToSpotifyRemote(spotifyAccessToken.accessToken),
-      builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.connectionState == ConnectionState.done) {
-          if (snapshot.hasError) {
-            return const Text('Error');
-          } else {
-            return const RootView(title: 'Groupify');
-          }
-        } else {
-          return Text('State: ${snapshot.connectionState}');
-        }
-      },
-    );
-    //return const Home();
   }
 
   static Future<void> _connectToSpotifyRemote(String accessToken) async {

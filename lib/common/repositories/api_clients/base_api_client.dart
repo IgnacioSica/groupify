@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cache/cache.dart';
@@ -64,14 +65,43 @@ class BaseApiClient {
 
   @protected
   Future<Map<String, String>> getAuthHeaders() async {
-    final token = authRepository.currentSpotifyAccessToken.accessToken;
+    final token = await getAccessToken();
 
     return {HttpHeaders.authorizationHeader: 'Bearer $token', HttpHeaders.contentTypeHeader: 'application/json'};
   }
 
-  // Future<String> getAccessToken(){
-  //   _cache.read<SpotifyAccessToken>(key: spotifyAccessTokenCacheKey)
-  // }
+  Future<String> getAccessToken() async {
+    var spotifyAccessToken = cache.read<SpotifyAccessToken>(key: spotifyAccessTokenCacheKey) ?? SpotifyAccessToken.empty;
+    if (spotifyAccessToken.isEmpty || spotifyAccessToken.isExpired) {
+      spotifyAccessToken = await requestAccessToken();
+      cache.write<SpotifyAccessToken>(key: spotifyAccessTokenCacheKey, value: spotifyAccessToken);
+    }
+
+    return spotifyAccessToken.accessToken;
+  }
+
+  Future<SpotifyAccessToken> requestAccessToken() async {
+    var headers = {
+      'Authorization': 'Basic YjlhNDg4MWU3N2Y0NDg4ZWI4ODI3ODhjYjEwNmEyOTc6ODJkNmEzMTZjMTA4NDViZDgyZGYxMDU0NTgyMzM4OWU=',
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+    var request = http.Request('POST', Uri.parse('https://accounts.spotify.com/api/token'));
+    request.bodyFields = {'grant_type': 'client_credentials'};
+    request.headers.addAll(headers);
+
+    http.StreamedResponse streamedResponse = await request.send();
+
+    if (streamedResponse.statusCode != 200) {
+      if (kDebugMode) {
+        print(streamedResponse.reasonPhrase);
+      }
+    }
+
+    final response = await http.Response.fromStream(streamedResponse);
+    final bodyJson = jsonDecode(response.body);
+
+    return SpotifyAccessToken(accessToken: bodyJson['access_token'], issuedAt: DateTime.now());
+  }
 
   @protected
   void assessQueryResponse(http.Response response) {

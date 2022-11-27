@@ -1,8 +1,4 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:groupify/auth/auth.dart';
-import 'package:groupify/auth/models/spotify_connection_status.dart';
 import 'package:groupify/common/common.dart';
 import 'package:spotify_sdk/models/player_state.dart';
 import 'package:spotify_sdk/spotify_sdk.dart';
@@ -12,8 +8,8 @@ class NowPlaying extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<SpotifyConnectionStatus>(
-      stream: RepositoryProvider.of<AuthRepository>(context).spotifyConnection,
+    return StreamBuilder<PlayerState>(
+      stream: SpotifySdk.subscribePlayerState(),
       builder: (context, snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.none:
@@ -27,7 +23,7 @@ class NowPlaying extends StatelessWidget {
     );
   }
 
-  Widget buildWidget(AsyncSnapshot<SpotifyConnectionStatus> snapshot) {
+  Widget buildWidget(AsyncSnapshot<PlayerState> snapshot) {
     if (snapshot.hasError || !snapshot.hasData) {
       return const SizedBox(height: 100, width: double.infinity, child: NowPlayingDummy());
     } else {
@@ -94,11 +90,10 @@ class _NowPlayingWidState extends State<NowPlayingWid> with TickerProviderStateM
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              AutoSizeText(
+                              Text(
                                 playerState.track!.name,
                                 style: textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.bold),
                                 maxLines: 2,
-                                minFontSize: 15,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
@@ -113,11 +108,11 @@ class _NowPlayingWidState extends State<NowPlayingWid> with TickerProviderStateM
                         IconButton(
                             onPressed: () async {
                               if (playerState.isPaused) {
-                                _controller.forward();
                                 await SpotifySdk.resume();
+                                _controller.forward();
                               } else {
-                                _controller.reverse();
                                 await SpotifySdk.pause();
+                                _controller.reverse();
                               }
                             },
                             icon: AnimatedIcon(icon: AnimatedIcons.play_pause, progress: _myAnimation),

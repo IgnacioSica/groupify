@@ -22,18 +22,13 @@ class _RootViewState extends State<RootView> {
   }
 
   Future<void> _incrementCounter() async {
-    final spotifyAccessToken = RepositoryProvider.of<AuthRepository>(context).currentSpotifyAccessToken;
-    await _connectToSpotifyRemote(spotifyAccessToken.accessToken);
     setState(() {
       _counter++;
     });
   }
 
-  final List<Track> tracks = [Track.random(), Track.random(), Track.random(), Track.random(), Track.random()];
-
   @override
   Widget build(BuildContext context) {
-    tracks.sort((a, b) => -a.votes.compareTo(b.votes));
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
@@ -50,66 +45,19 @@ class _RootViewState extends State<RootView> {
         ],
       ),
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         child: Column(
-          children: [
-            const BaseTile(
+          children: const [
+            BaseTile(
               margin: EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 16),
-              child: NowPlayingWid(),
+              child: NowPlaying(),
             ),
             BaseTile(
-              margin: const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        'Queue',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall!
-                            .copyWith(fontWeight: FontWeight.bold, color: Colors.white),
-                      ),
-                      const Spacer(),
-                      CircleAvatar(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        child: const Icon(Icons.queue_music_rounded),
-                      ),
-                      //const SizedBox(width: 8),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  ListView.separated(
-                    itemCount: tracks.length,
-                    shrinkWrap: true,
-                    physics: const BouncingScrollPhysics(),
-                    itemBuilder: (BuildContext context, int index) {
-                      return TrackRow(
-                        track: tracks[index],
-                        actions: [],
-                        position: index + 1,
-                      );
-                    },
-                    separatorBuilder: (BuildContext context, int index) => const SizedBox(height: 8),
-                  ),
-                ],
-              ),
+              padding: EdgeInsets.only(top: 8, left: 8, right: 8),
+              margin: EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 16),
+              child: QueueTile(),
             ),
-            SuggestionsTile(),
-            BaseTile(
-              child: FirestoreListView<Map<String, dynamic>>(
-                pageSize: 10,
-                query: FirebaseFirestore.instance.collection('rooms'),
-                shrinkWrap: true,
-                emptyBuilder: (context) => const Text('empty'),
-                errorBuilder: (context, obj, st) => const Text('error'),
-                itemBuilder: (context, snapshot) {
-                  Map<String, dynamic> user = snapshot.data();
-
-                  return Text('Room name is ${user['name']}');
-                },
-              ),
-            ),
+            //SuggestionsTile(),
           ],
         ),
       ),

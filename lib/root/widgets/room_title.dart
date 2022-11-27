@@ -18,7 +18,10 @@ class RoomTitle extends StatelessWidget {
             return const Text("Loading room");
           }
           var roomDocument = snapshot.data;
-          return Text(roomDocument!["name"]);
+          return Text(
+            roomDocument!["name"],
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          );
         });
   }
 }

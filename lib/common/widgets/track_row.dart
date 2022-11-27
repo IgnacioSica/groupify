@@ -1,70 +1,170 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:groupify/common/common.dart';
 
-class TrackRow extends StatefulWidget {
-  const TrackRow({Key? key, required this.track, required this.actions, required this.position}) : super(key: key);
-  final Track track;
-  final List<Widget> actions;
+class TrackRow extends StatelessWidget {
+  const TrackRow({Key? key, required this.track, required this.position}) : super(key: key);
+
+  final FirestoreTrack track;
   final int position;
 
   @override
-  State<TrackRow> createState() => _TrackRowState();
+  Widget build(BuildContext context) {
+    final spotifyRepo = RepositoryProvider.of<SpotifyRepository>(context);
+
+    return FutureBuilder<SpotifyTrack>(
+        initialData: spotifyRepo.tryGetTrack(track.spotifyUri),
+        future: spotifyRepo.getTrack(track.spotifyUri),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return TrackRowWid(
+              spotifyTrack: snapshot.data!,
+              position: position,
+              firestoreTrack: track,
+              key: ValueKey(track.spotifyUri),
+            );
+          }
+          if (snapshot.connectionState == ConnectionState.done && !snapshot.hasError && snapshot.hasData) {
+            return TrackRowWid(
+              spotifyTrack: snapshot.data!,
+              position: position,
+              firestoreTrack: track,
+              key: ValueKey(track.spotifyUri),
+            );
+          } else {
+            return TrackRowDummy(position: position, key: ValueKey('${track.spotifyUri}_dummy'));
+          }
+        });
+  }
 }
 
-class _TrackRowState extends State<TrackRow> {
+class TrackRowWid extends StatefulWidget {
+  const TrackRowWid({Key? key, required this.spotifyTrack, required this.position, required this.firestoreTrack})
+      : super(key: key);
+  final SpotifyTrack spotifyTrack;
+  final FirestoreTrack firestoreTrack;
+  final int position;
+
+  @override
+  State<TrackRowWid> createState() => _TrackRowWidState();
+}
+
+class _TrackRowWidState extends State<TrackRowWid> {
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(9),
-      onTap: () {
-        setState(() {
-          widget.track.voted = !widget.track.voted;
-          widget.track.votes += !widget.track.voted ? 1 : -1;
-        });
-      },
-      child: Ink(
-        height: 50,
-        decoration: BoxDecoration(
-          color: widget.position >= 0 && widget.position <= 3
-              ? Theme.of(context).colorScheme.primary.withOpacity((0.30 / widget.position))
-              : null,
+    return Column(
+      children: [
+        InkWell(
           borderRadius: BorderRadius.circular(9),
-        ),
-        child: Row(
-          children: [
-            ClipRRect(
+          onTap: () async {
+            final fireRepo = RepositoryProvider.of<FirestoreRepository>(context);
+            await fireRepo.changeVote(widget.firestoreTrack);
+          },
+          child: Ink(
+            height: 55,
+            decoration: BoxDecoration(
+              color: widget.position >= 0 && widget.position <= 3
+                  ? Theme.of(context).colorScheme.primary.withOpacity((0.30 / widget.position))
+                  : null,
               borderRadius: BorderRadius.circular(9),
-              child: Image.network(widget.track.album.images[0].url),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(widget.track.name),
-                  Text(widget.track.artists.map((e) => e.name).join(', '), style: Theme.of(context).textTheme.bodySmall),
-                ],
-              ),
-            ),
-            Row(children: widget.actions),
-            CustomAnimatedIcon(
-                iconA: const LikeButton(spotifyUri: 'spotify:track:58kNJana4w5BIjlZE2wq5m'),
-                iconB: IconButton(
-                  onPressed: () {},
-                  visualDensity: VisualDensity.compact,
-                  icon: const Icon(
-                    Icons.remove_circle_outline_rounded,
-                    size: 18,
-                    color: CupertinoColors.destructiveRed,
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(9),
+                  child: Image.network(widget.spotifyTrack.album.images[1].url),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.spotifyTrack.name,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        widget.spotifyTrack.artists.map((e) => e.name).join(', '),
+                        style: Theme.of(context).textTheme.bodySmall,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
-                showA: widget.track.votes > 0),
-            VoteCounter(track: widget.track),
-          ],
+                CustomAnimatedIcon(
+                    iconA: const LikeButton(spotifyUri: 'spotify:track:58kNJana4w5BIjlZE2wq5m'),
+                    iconB: IconButton(
+                      onPressed: () async {
+                        final fireRepo = RepositoryProvider.of<FirestoreRepository>(context);
+                        await fireRepo.removeTrack(widget.firestoreTrack.spotifyUri);
+                      },
+                      visualDensity: VisualDensity.compact,
+                      icon: const Icon(
+                        Icons.remove_circle_outline_rounded,
+                        size: 18,
+                        color: CupertinoColors.destructiveRed,
+                      ),
+                    ),
+                    showA: widget.firestoreTrack.votes.isNotEmpty),
+                VoteCounter(track: widget.firestoreTrack),
+                const SizedBox(width: 4)
+              ],
+            ),
+          ),
         ),
-      ),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
+}
+
+class TrackRowDummy extends StatelessWidget {
+  const TrackRowDummy({Key? key, required this.position}) : super(key: key);
+  final int position;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        InkWell(
+          borderRadius: BorderRadius.circular(9),
+          onTap: null,
+          child: Ink(
+            height: 50,
+            decoration: BoxDecoration(
+              color: position >= 0 && position <= 3
+                  ? Theme.of(context).colorScheme.primary.withOpacity((0.30 / position))
+                  : null,
+              borderRadius: BorderRadius.circular(9),
+            ),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(9),
+                  child: const SizedBox(width: 50),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(''),
+                      Text('', style: Theme.of(context).textTheme.bodySmall),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+      ],
     );
   }
 }
